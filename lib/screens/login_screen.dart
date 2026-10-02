@@ -113,186 +113,188 @@ class _LoginScreenState extends State<LoginScreen> {
     // Para obtener el tamaño de la pantalla
     final Size size = MediaQuery.of(context).size;
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              SizedBox(
-                width: size.width,
-                height: 200,
-                child: RiveAnimation.asset(
-                  // EL ERROR ESTABA AQUÍ: login_bear (guion bajo), no login-bear
-                  'assets/login_bear.riv', 
-                  stateMachines: const ['Login Machine'],
-                  // 1.2 vincular animación
-                  onInit: (artboard) {
-                    _controller = StateMachineController.fromArtboard(
-                      artboard,
-                      'Login Machine',
-                    );
-
-                    // 1.3 verificar que inicio bien
-                    if (_controller == null) return;
-                    // Agrega controlador al escenario
-                    artboard.addController(_controller!);
-                    
-                    // vinculamos variables
-                    _isChecking = _controller!.findSMI('isChecking') as SMIBool?;
-                    _isHandsUp = _controller!.findSMI('isHandsUp') as SMIBool?;
-                    _trigSuccess = _controller!.findSMI('trigSuccess') as SMITrigger?;
-                    _trigFail = _controller!.findSMI('trigFail') as SMITrigger?;
-                    
-                    // 3.5 vincular numLook (con respaldo por si el archivo usa mayúscula)
-                    _numLook = (_controller!.findSMI('numLook') ?? _controller!.findSMI('Look')) as SMINumber?;
-                  },
-                ),
-              ),
-              
-              // para separar espacio
-              const SizedBox(height: 10),
-              
-              TextField(
-                //4.10 Enlazar controller
-                controller: emailCtrl,
-                // 2.3 asignar foco al campo de texto
-                focusNode: _emailFocus,
-                
-                onTap: () {
-                  _isChecking?.change(true);
-                  _isHandsUp?.change(false);
-                },
-
-                onChanged: (value) {
-                  // si checking es nulo
-                  if (_isChecking == null) return;
-                  // activa el modo chismoso
-                  _isChecking!.change(true);
-                  
-                  // 3.6 Implementar numLook
-                  // Ajustes de límites del 0 a 100
-                  // Bajamos a 30.0 para que el movimiento de los ojos sea notorio
-                  final look = (value.length / 30.0 * 100.0).clamp(0.0, 100.0);
-                  // Clamp es el rango (abrazadera)
-                  _numLook?.value = look;
-
-                  // 3.7 Debounce: si vuelve a teclear, reinicia el contador
-                  // Cancelar cualquier timer existente
-                  _typingDebounce?.cancel();
-                  // crear nuevo timer
-                  _typingDebounce = Timer(const Duration(seconds: 2), () {
-                    // si se cierra la pantalla, quita el contador
-                    if (!mounted) return;
-                    // Mirada neutra
-                    _isChecking?.change(false);
-                  });
-                },
-                
-                // para mostrar el tipo de teclado
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  errorText: emailError,
-                  hintText: 'Email',
-                  prefixIcon: const Icon(Icons.email),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 10),
-              
-              // campo de texto para contraseña
-              TextField(
-                //4.10 enlazar controller
-                controller: passwordCtrl,
-                // 2.3 asignar foco al campo de texto
-                focusNode: _passwordFocus,
-                
-                onTap: () {
-                  _isChecking?.change(false);
-                  _isHandsUp?.change(_obscure);
-                },
-
-                onChanged: (value) {
-                  // si isHandsUp es nulo
-                  if (_isHandsUp == null) return;
-                  // activa las manos arriba si el texto está oculto
-                  _isHandsUp!.change(_obscure);
-                },
-
-                obscureText: _obscure,
-                // Para mostrar el tipo de teclado
-                keyboardType: TextInputType.visiblePassword,
-                decoration: InputDecoration(
-                  errorText: passwordError,
-                  hintText: 'Password',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscure ? Icons.visibility : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      // refrescar el icono
-                      setState(() {
-                        _obscure = !_obscure;
-                      });
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                SizedBox(
+                  width: size.width,
+                  height: 200,
+                  child: RiveAnimation.asset(
+                    // EL ERROR ESTABA AQUÍ: login_bear (guion bajo), no login-bear
+                    'assets/login_bear.riv', 
+                    stateMachines: const ['Login Machine'],
+                    // 1.2 vincular animación
+                    onInit: (artboard) {
+                      _controller = StateMachineController.fromArtboard(
+                        artboard,
+                        'Login Machine',
+                      );
+        
+                      // 1.3 verificar que inicio bien
+                      if (_controller == null) return;
+                      // Agrega controlador al escenario
+                      artboard.addController(_controller!);
                       
-                      // Actualizar animación: destapar los ojos si mostramos la contraseña
-                      if (_passwordFocus.hasFocus) {
-                        _isHandsUp?.change(_obscure);
-                      }
+                      // vinculamos variables
+                      _isChecking = _controller!.findSMI('isChecking') as SMIBool?;
+                      _isHandsUp = _controller!.findSMI('isHandsUp') as SMIBool?;
+                      _trigSuccess = _controller!.findSMI('trigSuccess') as SMITrigger?;
+                      _trigFail = _controller!.findSMI('trigFail') as SMITrigger?;
+                      
+                      // 3.5 vincular numLook (con respaldo por si el archivo usa mayúscula)
+                      _numLook = (_controller!.findSMI('numLook') ?? _controller!.findSMI('Look')) as SMINumber?;
                     },
                   ),
-                  border: OutlineInputBorder(
-                    // para redondear bordes
-                    borderRadius: BorderRadius.circular(12),
+                ),
+                
+                // para separar espacio
+                const SizedBox(height: 10),
+                
+                TextField(
+                  //4.10 Enlazar controller
+                  controller: emailCtrl,
+                  // 2.3 asignar foco al campo de texto
+                  focusNode: _emailFocus,
+                  
+                  onTap: () {
+                    _isChecking?.change(true);
+                    _isHandsUp?.change(false);
+                  },
+        
+                  onChanged: (value) {
+                    // si checking es nulo
+                    if (_isChecking == null) return;
+                    // activa el modo chismoso
+                    _isChecking!.change(true);
+                    
+                    // 3.6 Implementar numLook
+                    // Ajustes de límites del 0 a 100
+                    // Bajamos a 30.0 para que el movimiento de los ojos sea notorio
+                    final look = (value.length / 30.0 * 100.0).clamp(0.0, 100.0);
+                    // Clamp es el rango (abrazadera)
+                    _numLook?.value = look;
+        
+                    // 3.7 Debounce: si vuelve a teclear, reinicia el contador
+                    // Cancelar cualquier timer existente
+                    _typingDebounce?.cancel();
+                    // crear nuevo timer
+                    _typingDebounce = Timer(const Duration(seconds: 2), () {
+                      // si se cierra la pantalla, quita el contador
+                      if (!mounted) return;
+                      // Mirada neutra
+                      _isChecking?.change(false);
+                    });
+                  },
+                  
+                  // para mostrar el tipo de teclado
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    errorText: emailError,
+                    hintText: 'Email',
+                    prefixIcon: const Icon(Icons.email),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
-              ),
-            const SizedBox(height: 10),
-            //4.12 Texto olvide la contraseña
-            SizedBox(width: size.width, child: const Text('Forgot Password?', //alinear a la derecha 
-            textAlign: TextAlign.right, style: TextStyle(decoration: TextDecoration.underline)
-            )
-            ),
-            const SizedBox(height: 10),
-            //4.13 Boton de login
-            MaterialButton(
-              minWidth: size.width,
-              height: 50,
-              color: Colors.pinkAccent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              onPressed: _onLogin,
-              child: Text(
-                'Login',
-                style: TextStyle(
-                  color: Colors.white
+                
+                const SizedBox(height: 10),
+                
+                // campo de texto para contraseña
+                TextField(
+                  //4.10 enlazar controller
+                  controller: passwordCtrl,
+                  // 2.3 asignar foco al campo de texto
+                  focusNode: _passwordFocus,
+                  
+                  onTap: () {
+                    _isChecking?.change(false);
+                    _isHandsUp?.change(_obscure);
+                  },
+        
+                  onChanged: (value) {
+                    // si isHandsUp es nulo
+                    if (_isHandsUp == null) return;
+                    // activa las manos arriba si el texto está oculto
+                    _isHandsUp!.change(_obscure);
+                  },
+        
+                  obscureText: _obscure,
+                  // Para mostrar el tipo de teclado
+                  keyboardType: TextInputType.visiblePassword,
+                  decoration: InputDecoration(
+                    errorText: passwordError,
+                    hintText: 'Password',
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscure ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        // refrescar el icono
+                        setState(() {
+                          _obscure = !_obscure;
+                        });
+                        
+                        // Actualizar animación: destapar los ojos si mostramos la contraseña
+                        if (_passwordFocus.hasFocus) {
+                          _isHandsUp?.change(_obscure);
+                        }
+                      },
+                    ),
+                    border: OutlineInputBorder(
+                      // para redondear bordes
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
+              const SizedBox(height: 10),
+              //4.12 Texto olvide la contraseña
+              SizedBox(width: size.width, child: const Text('Forgot Password?', //alinear a la derecha 
+              textAlign: TextAlign.right, style: TextStyle(decoration: TextDecoration.underline)
               )
-            ),
-            const SizedBox(height: 10),
-            SizedBox(width: size.width, child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Don´t have a account?"),
-                TextButton(
-                  onPressed: (){},
-                  child: Text('Sign up',
+              ),
+              const SizedBox(height: 10),
+              //4.13 Boton de login
+              MaterialButton(
+                minWidth: size.width,
+                height: 50,
+                color: Colors.pinkAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onPressed: _onLogin,
+                child: Text(
+                  'Login',
                   style: TextStyle(
-                    color: Colors.black,
-                    //subrayado
-                    decoration: TextDecoration.underline,
-                    //negritas:
-                    fontWeight: FontWeight.bold
-                  )
-                  )
+                    color: Colors.white
+                  ),
                 )
-              ]
-            ))
-            ],
+              ),
+              const SizedBox(height: 10),
+              SizedBox(width: size.width, child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don´t have a account?"),
+                  TextButton(
+                    onPressed: (){},
+                    child: Text('Sign up',
+                    style: TextStyle(
+                      color: Colors.black,
+                      //subrayado
+                      decoration: TextDecoration.underline,
+                      //negritas:
+                      fontWeight: FontWeight.bold
+                    )
+                    )
+                  )
+                ]
+              ))
+              ],
+            ),
           ),
         ),
       ),
